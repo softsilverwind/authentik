@@ -9,7 +9,7 @@ from sentry_sdk.hub import Hub
 from sentry_sdk.tracing import Span
 from structlog.stdlib import get_logger
 
-from authentik.core.models import User
+from authentik.core.models import Group, User
 from authentik.lib.utils.http import get_http_session
 
 LOGGER = get_logger()
@@ -35,6 +35,7 @@ class BaseEvaluator:
             "list_flatten": BaseEvaluator.expr_flatten,
             "ak_is_group_member": BaseEvaluator.expr_is_group_member,
             "ak_user_by": BaseEvaluator.expr_user_by,
+            "ak_groups_by": BaseEvaluator.expr_groups_by,
             "ak_logger": get_logger(),
             "requests": get_http_session(),
         }
@@ -67,6 +68,17 @@ class BaseEvaluator:
             users = User.objects.filter(**filters)
             if users:
                 return users.first()
+            return None
+        except FieldError:
+            return None
+
+    @staticmethod
+    def expr_groups_by(**filters) -> Optional[Group]:
+        """Get groups by filters"""
+        try:
+            groups = Group.objects.filter(**filters)
+            if groups:
+                return groups
             return None
         except FieldError:
             return None
